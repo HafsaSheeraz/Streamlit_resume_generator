@@ -8,10 +8,13 @@ import os
 
 # Load environment variables
 load_dotenv()
+# Configure Google Generative AI
+if not os.getenv("GEMINI_API_KEY"):
+    raise ValueError("GEMINI_API_KEY not found in .env file. Please set it up.")
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Set up Gemini model
-MODEL = "gemini-1.5-flash"
+MODEL = "models/gemini-1.5-flash"
 client = genai.GenerativeModel(MODEL)
 
 # Streamlit UI
@@ -64,18 +67,22 @@ Skills: {skills}
 
 Return only the resume text in plain formatting (no markdown, no explanation).
                 """
-                response = client.generate_content([
-                    {
-                        "role": "system",
-                        "parts": [
-                            "You are an expert resume builder. Only help the user with resume-related questions such as formatting, writing, tailoring resumes for jobs, or generating professional resume content. Do NOT answer any unrelated queries."
-                        ]
-                    },
-                    {
-                        "role": "user",
-                        "parts": [prompt]
-                    }
-                ])
+                response = client.generate_content(prompt)
+                if not response or not response.text:
+                    st.error("❌ Failed to generate resume. Please try again.")
+                    raise ValueError("Empty response from Gemini")
+                # response = client.generate_content([
+                #     {
+                #         "role": "system",
+                #         "parts": [
+                #             "You are an expert resume builder. Only help the user with resume-related questions such as formatting, writing, tailoring resumes for jobs, or generating professional resume content. Do NOT answer any unrelated queries."
+                #         ]
+                #     },
+                #     {
+                #         "role": "user",
+                #         "parts": [prompt]
+                #     }
+                # ])
                 resume_text = response.text
 
                 # ✅ Show success
@@ -89,12 +96,23 @@ Return only the resume text in plain formatting (no markdown, no explanation).
                 pdf.set_font("Arial", size=12)
                 for line in resume_text.split("\n"):
                     pdf.multi_cell(0, 10, line)
+                # Output as string and encode
+                pdf_output = pdf.output(dest='S').encode('latin1')  # 'S' = return as string
 
-                pdf_buffer = io.BytesIO()
-                pdf.output(pdf_buffer)
-                pdf_buffer.seek(0)
+                # Write to BytesIO
+                pdf_buffer = io.BytesIO(pdf_output)
+                # Show download button
+                st.download_button(
+                    label="📥 Download Resume as PDF",
+                    data=pdf_buffer,
+                    file_name="resume.pdf",
+                    mime="application/pdf"
+                )
 
-                st.download_button("📥 Download Resume as PDF", pdf_buffer, file_name="resume.pdf")
+                # pdf.output(pdf_buffer, 'F')
+                # pdf_buffer.seek(0)
+
+                # st.download_button("📥 Download Resume as PDF", pdf_buffer, file_name="resume.pdf")
 
                 # ✨ Resume Chat Improvement
                 st.markdown("## 💬 Refine Your Resume")
@@ -111,10 +129,12 @@ You previously generated this resume:
 Now improve it based on the following instruction: {chat_input}
 Return only the updated resume in plain text (no explanation).
                             """
-                            chat_response = client.generate_content([
-                                {"role": "system", "parts": ["You are a resume improvement assistant. Only help with resume modifications."]},
-                                {"role": "user", "parts": [chat_prompt]}
-                            ])
+                            chat_response = client.generate_content(prompt)
+
+                            # chat_response = client.generate_content([
+                            #     {"role": "system", "parts": ["You are a resume improvement assistant. Only help with resume modifications."]},
+                            #     {"role": "user", "parts": [chat_prompt]}
+                            # ])
                             updated_resume = chat_response.text
                             st.success("🔄 Resume updated based on your feedback!")
                             st.text_area("📝 Updated Resume", updated_resume, height=500)
@@ -137,10 +157,12 @@ Resume:
 
 Keep it formal, concise, and professional.
                             """
-                            cover_response = client.generate_content([
-                                {"role": "system", "parts": ["You are a cover letter writing expert."]},
-                                {"role": "user", "parts": [cover_prompt]}
-                            ])
+                            cover_response = client.generate_content(prompt)
+
+                            # cover_response = client.generate_content([
+                            #     {"role": "system", "parts": ["You are a cover letter writing expert."]},
+                            #     {"role": "user", "parts": [cover_prompt]}
+                            # ])
                             cover_letter = cover_response.text
                             st.success("✅ Cover letter generated!")
                             st.text_area("📄 Your Cover Letter", cover_letter, height=400)
