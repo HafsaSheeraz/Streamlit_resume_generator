@@ -3,7 +3,6 @@
 A smart AI-powered Resume Builder built with **Streamlit** and **Google's Gemini API**.  
 Users can generate, customize, and download professional resumes and cover letters—and even chat with Gemini to tailor their content.
 
----
 
 ## 🚀 Features
 
@@ -15,7 +14,6 @@ Users can generate, customize, and download professional resumes and cover lette
 - ✅ Validates required fields and email format
 - 🌐 Easily deployable on **Streamlit Cloud**
 
----
 
 ## 🛠 Tech Stack
 
@@ -25,18 +23,10 @@ Users can generate, customize, and download professional resumes and cover lette
 - dotenv (for environment variable management)
 - ReportLab (for PDF generation)
 
----
-
-## 📸 Screenshots
-
-*(Add screenshots of your app interface here)*
-
----
 
 ## 🧪 How to Run Locally
 
 1. **Clone the repository**
-   ```bash
    git clone https://github.com/your-username/gemini-resume-builder.git
    cd gemini-resume-builder
 # Install dependencies
@@ -47,8 +37,6 @@ pip install -r requirements.txt
 Create a .env file in the root directory and add:
 GEMINI_API_KEY=your_api_key_here
 
-# 📜 License
-This project is open-source and available under the MIT License.
 # 🤝 Contributions
 Pull requests and feature suggestions are welcome!
 If you'd like to improve resume formatting or add more templates, feel free to contribute.
